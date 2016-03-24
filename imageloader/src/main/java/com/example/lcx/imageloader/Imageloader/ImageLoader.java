@@ -2,8 +2,10 @@ package com.example.lcx.imageloader.Imageloader;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.widget.ImageView;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -14,15 +16,15 @@ import java.util.concurrent.Executors;
 /**
  * Created by Administrator on 2016/3/18 0018.
  */
-//×¨ÃÅÌá¹©Í¼Æ¬ÏÂÔØµÄÀà ÖÁÓÚÍ¼Æ¬µÄ±£´æ ¸ù¾İµ¥Ò»Ö°Ôğ ÎÒÃÇÓĞÁíÍâµÄÀàÈ¥ÊµÏÖ
+//ä¸“é—¨æä¾›å›¾ç‰‡ä¸‹è½½çš„ç±» è‡³äºå›¾ç‰‡çš„ä¿å­˜ æ ¹æ®å•ä¸€èŒè´£ æˆ‘ä»¬æœ‰å¦å¤–çš„ç±»å»å®ç°
 
 public class ImageLoader {
     private static ImageLoader instance;
-  //Í¼Æ¬»º´æ ÉèÖÃÒ»¸öÄ¬ÈÏµÄÏ¸½Ú
+  //å›¾ç‰‡ç¼“å­˜ è®¾ç½®ä¸€ä¸ªé»˜è®¤çš„ç»†èŠ‚
   ImageCache mimageCache=new MemoryCache();
-  //Ïß³Ì³Ø Ïß³ÌµÄÊıÁ¿ÎªcpuµÄÊıÁ¿
+  //çº¿ç¨‹æ±  çº¿ç¨‹çš„æ•°é‡ä¸ºcpuçš„æ•°é‡
    ExecutorService mExecutorService= Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-   //ÉèÖÃµ¥ÀıÄ£Ê½
+   //è®¾ç½®å•ä¾‹æ¨¡å¼
     private ImageLoader(){
 
     }
@@ -32,9 +34,10 @@ public class ImageLoader {
         }
         return instance;
     }
-    //ÉèÖÃÍ¼Æ¬»º´æ ÒÀÀµ×¢ÈëÏ¸½Ú ÒÀÀµÓÚ³éÏó
-  public void setImageCache(ImageCache imageCache){
+    //è®¾ç½®å›¾ç‰‡ç¼“å­˜ ä¾èµ–æ³¨å…¥ç»†èŠ‚ ä¾èµ–äºæŠ½è±¡ï¿½ï¿½ï¿½
+  public ImageLoader setImageCache(ImageCache imageCache){
         mimageCache=imageCache;
+        return this;
     }
  public void displayImage(String url,ImageView imageView){
      Bitmap bitmap=mimageCache.get(url);
@@ -42,16 +45,26 @@ public class ImageLoader {
          imageView.setImageBitmap(bitmap);
          return;
      }
-   //Í¼Æ¬Ã»ÓĞ»º´æ Ìá½»µ½Ïß³Ì³ØÖĞÏÂÔØÍ¼Æ¬
+   //å›¾ç‰‡æ²¡æœ‰ç¼“å­˜ æäº¤åˆ°çº¿ç¨‹æ± ä¸­ä¸‹è½½å›¾ç‰‡
       submitloadRequest(url,imageView);
  }
-
-    private void submitloadRequest(final String url, ImageView imageView) {
-        imageView.setTag(url);
-        mExecutorService.submit(new Runnable() {
+    private void submitloadRequest(final String url, final ImageView imageView) {
+         imageView.setTag(url);
+         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
-                Bitmap bitmap = DownloadBitmap(url);
+                try {
+                    Bitmap bitmap = DownloadBitmap(url);
+                    if (bitmap==null){
+                        return;
+                    }
+                    if (imageView.getTag().equals(url)){
+                        imageView.setImageBitmap(bitmap);
+                    }
+                    mimageCache.put(url,bitmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

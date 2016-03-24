@@ -22,8 +22,7 @@ public class MemoryCache implements ImageCache {
         MemoryCache=new LruCache<String,Bitmap>(MaxSize){
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
-                //返回的是 每张图片的大小 来确定所占用的缓存容积
-                return bitmap.getByteCount()/1024;
+                return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
             }
         };
     }
