@@ -1,1 +1,5 @@
 /build
+/libs
+build.gradle
+myimageloader.iml
+proguard-rules.pro
